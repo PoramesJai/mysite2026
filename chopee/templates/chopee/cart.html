@@ -1,0 +1,96 @@
+{% extends 'chopee/base.html' %}
+{% load static %}
+
+{% block title %}รถเข็นของฉัน | Chopee ประเทศไทย{% endblock %}
+
+{% block content %}
+
+    <div class="breadcrumb">
+        <a href="{% url 'chopee:home' %}">Chopee</a> &gt; 
+        <span>รถเข็นของฉัน</span>
+    </div>
+
+    <h2 style="font-size:22px; font-weight:600; margin-bottom:20px; color:#222;">รถเข็นของฉัน</h2>
+
+    {% if cart_items %}
+        <!-- Cart headers -->
+        <div class="cart-header-cols">
+            <div>สินค้า</div>
+            <div style="text-align:center;">ราคาต่อชิ้น</div>
+            <div style="text-align:center;">จำนวน</div>
+            <div style="text-align:center;">ราคารวม</div>
+            <div style="text-align:center;">แอคชั่น</div>
+        </div>
+
+        <!-- Cart items list -->
+        {% for item in cart_items %}
+            <div class="cart-item-row">
+                <!-- Product details -->
+                <div class="cart-product-cell">
+                    <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" class="cart-product-img">
+                    <div>
+                        <a href="{% url 'chopee:product_detail' item.product.id %}" class="cart-product-name">{{ item.product.name }}</a>
+                        <div style="font-size:12px; color:var(--text-light); margin-top:4px;">ตัวเลือกสินค้า: Standard Edition</div>
+                    </div>
+                </div>
+
+                <!-- Price per unit -->
+                <div class="cart-price-cell" style="text-align:center;">
+                    ฿{{ item.product.price }}
+                </div>
+
+                <!-- Quantity controls -->
+                <div style="text-align:center; display:flex; justify-content:center;">
+                    <form action="{% url 'chopee:update_cart' %}" method="POST" style="display:flex; align-items:center;">
+                        {% csrf_token %}
+                        <input type="hidden" name="item_id" value="{{ item.id }}">
+                        
+                        <div class="quantity-stepper" style="height:28px;">
+                            <button type="submit" name="action" value="decrease" class="step-btn" style="width:26px; height:26px;">-</button>
+                            <input type="number" name="quantity" value="{{ item.quantity }}" class="quantity-input" style="width:40px; height:26px; font-size:12px;" readonly>
+                            <button type="submit" name="action" value="increase" class="step-btn" style="width:26px; height:26px;">+</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Total price for this item -->
+                <div class="cart-total-cell" style="text-align:center;">
+                    ฿{{ item.total_price }}
+                </div>
+
+                <!-- Action button (Delete) -->
+                <div class="cart-action-cell" style="text-align:center;">
+                    <a href="{% url 'chopee:remove_from_cart' item.id %}" style="color:var(--text-light); hover:color:var(--primary-color); font-weight:500;">ลบ</a>
+                </div>
+            </div>
+        {% endfor %}
+
+        <!-- Voucher Promotion Block -->
+        <div style="background-color:var(--white); padding:15px 25px; border-radius:var(--border-radius); box-shadow:var(--shadow); margin-top:15px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; border: 1px dashed rgba(238, 77, 45, 0.25);">
+            <div style="display:flex; align-items:center; gap:10px; font-size:14px;">
+                <span style="font-size:18px;">🎟️</span>
+                <strong>โค้ดส่วนลดของ Chopee</strong>
+                <span style="color:var(--text-light);">เลือกโค้ดส่วนลดเพื่อลดค่าจัดส่งหรือรับ Coin คืน</span>
+            </div>
+            <a href="#" style="color:#0055aa; font-size:13px; font-weight:500;">เลือกโค้ดส่วนลด ></a>
+        </div>
+
+        <!-- Sticky Footer bar -->
+        <div class="cart-footer-bar">
+            <div class="cart-footer-summary">
+                <div class="cart-total-label">รวมการสั่งซื้อ ({{ cart_items.count }} รายการ):</div>
+                <div class="cart-grand-total">฿{{ total_price }}</div>
+            </div>
+            <a href="{% url 'chopee:checkout' %}" class="btn-checkout">สั่งซื้อสินค้า</a>
+        </div>
+    {% else %}
+        <!-- Empty cart -->
+        <div class="empty-cart-box">
+            <div class="empty-cart-icon">🛒</div>
+            <h3>รถเข็นของคุณว่างเปล่า</h3>
+            <p style="color:var(--text-lighter); font-size:14px; margin-bottom:20px;">มีสินค้าอีกมากมายที่พร้อมจะจัดส่งให้คุณ ลองไปช้อปกันเถอะ!</p>
+            <a href="{% url 'chopee:home' %}" class="btn-primary">ไปหน้าช้อปปิ้งเลย</a>
+        </div>
+    {% endif %}
+
+{% endblock %}

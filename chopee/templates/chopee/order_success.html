@@ -1,0 +1,48 @@
+{% extends 'chopee/base.html' %}
+{% load static %}
+
+{% block title %}สั่งซื้อสำเร็จ | Chopee ประเทศไทย{% endblock %}
+
+{% block content %}
+
+    <div class="success-card">
+        <div class="success-icon-box">✔️</div>
+        <h2>ชำระเงินและสั่งซื้อสินค้าสำเร็จ!</h2>
+        <p>ขอบคุณสำหรับการสั่งซื้อที่ Chopee ระบบจำลองนี้ได้ทำการบันทึกข้อมูลคำสั่งซื้อเรียบร้อยแล้ว รายละเอียดการจัดส่งของคุณมีดังนี้:</p>
+        
+        <!-- Summary order box -->
+        <div style="background-color: var(--bg-color); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 20px; text-align: left; margin-bottom: 30px; font-size:14px; max-width: 480px; margin-left: auto; margin-right: auto; display: flex; flex-direction: column; gap:10px;">
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+                <span style="color:var(--text-light);">หมายเลขคำสั่งซื้อ:</span>
+                <strong>#{{ order.id }}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text-light);">ผู้รับสินค้า:</span>
+                <strong>{{ order.shipping_name }}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text-light);">เบอร์โทรศัพท์:</span>
+                <strong>{{ order.shipping_phone }}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; text-align:right;">
+                <span style="color:var(--text-light); flex-shrink:0;">ที่อยู่จัดส่ง:</span>
+                <span style="font-weight:500; font-size:13px; max-width: 300px; line-height: 1.4;">{{ order.shipping_address }}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--text-light);">วิธีการชำระเงิน:</span>
+                <strong>{{ order.payment_method }}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-top:1px solid var(--border-color); padding-top:8px; font-size:16px;">
+                <span style="color:var(--text-color); font-weight:600;">ยอดเงินสุทธิ:</span>
+                <strong style="color:var(--primary-color);">฿{{ order.total_price }}</strong>
+            </div>
+        </div>
+
+        <!-- Success navigation buttons -->
+        <div class="success-actions">
+            <a href="{% url 'chopee:profile' %}" class="btn-checkout" style="padding: 10px 30px; font-size: 14px;">ดูประวัติการสั่งซื้อ</a>
+            <a href="{% url 'chopee:home' %}" class="btn-outline">กลับไปช้อปปิ้ง</a>
+        </div>
+    </div>
+
+{% endblock %}

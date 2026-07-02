@@ -1,0 +1,289 @@
+{% extends 'chopee/base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }} | Chopee Thailand{% endblock %}
+
+{% block content %}
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+        <a href="{% url 'chopee:home' %}">Chopee</a> &gt; 
+        <a href="{% url 'chopee:home' %}?category={{ product.category.slug }}">{{ product.category.name }}</a> &gt; 
+        <span>{{ product.name }}</span>
+    </div>
+
+    <!-- DETAIL CARD -->
+    <div class="detail-card">
+        <!-- Gallery -->
+        <div class="detail-gallery">
+            <div class="detail-img-main-wrapper">
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="detail-img-main" id="mainImage">
+            </div>
+            <div class="detail-thumbnails">
+                <div class="thumbnail-item active" onclick="setMainImage('{{ product.image_url }}', this)">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                </div>
+                {% for img in product.images.all %}
+                    <div class="thumbnail-item" onclick="setMainImage('{{ img.image_url }}', this)">
+                        <img src="{{ img.image_url }}" alt="Product detail">
+                    </div>
+                {% empty %}
+                    <!-- Dummy thumbnails for Shopee premium aesthetic -->
+                    <div class="thumbnail-item" onclick="setMainImage('{{ product.image_url }}', this)">
+                        <img src="{{ product.image_url }}" alt="Thumbnail 2" style="filter: hue-rotate(45deg);">
+                    </div>
+                    <div class="thumbnail-item" onclick="setMainImage('{{ product.image_url }}', this)">
+                        <img src="{{ product.image_url }}" alt="Thumbnail 3" style="filter: hue-rotate(90deg);">
+                    </div>
+                    <div class="thumbnail-item" onclick="setMainImage('{{ product.image_url }}', this)">
+                        <img src="{{ product.image_url }}" alt="Thumbnail 4" style="filter: hue-rotate(180deg);">
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="detail-info">
+            <h1 class="detail-title">{{ product.name }}</h1>
+            
+            <div class="detail-rating-row">
+                <div class="detail-rating-block">
+                    <span class="detail-rating-num">{{ product.rating|floatformat:1 }}</span>
+                    <span class="review-stars" style="font-size:14px;">
+                        {% if product.rating >= 4.8 %}⭐⭐⭐⭐⭐{% elif product.rating >= 3.8 %}⭐⭐⭐⭐☆{% else %}⭐⭐⭐☆☆{% endif %}
+                    </span>
+                </div>
+                <div class="detail-reviews-count">
+                    <span>{{ reviews.count }}</span> คะแนน
+                </div>
+                <div class="detail-sold-count">
+                    <span>{{ product.sold_count }}</span> ขายแล้ว
+                </div>
+            </div>
+
+            <!-- Price Box -->
+            <div class="detail-price-box">
+                <div class="detail-price-row">
+                    {% if product.has_discount %}
+                        <span class="detail-price-original">฿{{ product.original_price }}</span>
+                    {% endif %}
+                    <span class="detail-price-current">฿{{ product.price }}</span>
+                    {% if product.has_discount %}
+                        <span class="detail-price-tag">{{ product.discount_percentage }}% ลด</span>
+                    {% endif %}
+                </div>
+                <div class="detail-promo-desc">
+                    🛡️ <span>การันตีโดย Chopee: ได้รับสินค้าชัวร์ หรือได้รับเงินคืนเต็มจำนวน</span>
+                </div>
+            </div>
+
+            <!-- Form handling Buy/Add -->
+            <form action="{% url 'chopee:add_to_cart' product.id %}" method="POST" id="purchaseForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="formAction" value="add">
+
+                <!-- Variations: Colors -->
+                <div class="detail-spec-row" style="align-items: center;">
+                    <span class="spec-label">สีสินค้า</span>
+                    <div class="variation-tags">
+                        {% for color in colors %}
+                            <button type="button" class="variation-tag {% if forloop.first %}active{% endif %}" onclick="selectVariation(this, 'color')">
+                                {{ color }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="selected_color" id="selectedColor" value="{{ colors.0 }}">
+                </div>
+
+                <!-- Variations: Sizes -->
+                <div class="detail-spec-row" style="align-items: center; margin-top:10px;">
+                    <span class="spec-label">ขนาดสินค้า</span>
+                    <div class="variation-tags">
+                        {% for size in sizes %}
+                            <button type="button" class="variation-tag {% if forloop.first %}active{% endif %}" onclick="selectVariation(this, 'size')">
+                                {{ size }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="selected_size" id="selectedSize" value="{{ sizes.0 }}">
+                </div>
+
+                <!-- Shipping -->
+                <div class="detail-spec-row" style="margin-top:15px; border-bottom:1px solid var(--border-color); padding-bottom:15px;">
+                    <span class="spec-label">การจัดส่ง</span>
+                    <div class="spec-value">
+                        <div style="font-weight:600; color:var(--success-color); display:flex; align-items:center; gap:5px;">
+                            🚚 <span>จัดส่งฟรีค่าส่งพิเศษ</span>
+                        </div>
+                        <div style="font-size:12px; color:var(--text-light); margin-top:4px;">
+                            ส่งจาก: <strong>{{ product.location }}</strong> ถึงบ้านคุณ (ระยะเวลาจัดส่ง 1-3 วัน)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quantity -->
+                <div class="detail-spec-row" style="align-items: center; margin-top:20px;">
+                    <span class="spec-label">จำนวน</span>
+                    <div class="quantity-stepper">
+                        <button type="button" class="step-btn" onclick="stepQty(-1)">-</button>
+                        <input type="number" name="quantity" id="qtyInput" value="1" class="quantity-input" min="1" max="{{ product.stock }}" readonly>
+                        <button type="button" class="step-btn" onclick="stepQty(1)">+</button>
+                    </div>
+                    <span class="stock-indicator">มีสินค้าทั้งหมด {{ product.stock }} ชิ้น</span>
+                </div>
+
+                <!-- CTA Actions -->
+                <div class="detail-actions">
+                    <button type="button" class="btn-add-cart" onclick="submitForm('add')">
+                        🛒 เพิ่มไปยังรถเข็น
+                    </button>
+                    <button type="button" class="btn-buy-now" onclick="submitForm('buy')">
+                        ซื้อตอนนี้
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SPEC & DESCRIPTION -->
+    <div class="detail-tabs-container">
+        <div class="tab-title-header">รายละเอียดสินค้า</div>
+        <div style="display:grid; grid-template-columns:120px 1fr; gap:10px 30px; font-size:14px; margin-bottom:25px; border-bottom:1px solid var(--border-color); padding-bottom:20px;">
+            <div style="color:var(--text-light);">หมวดหมู่</div>
+            <div><a href="{% url 'chopee:home' %}?category={{ product.category.slug }}" style="color:#0055aa;">{{ product.category.name }}</a></div>
+            
+            <div style="color:var(--text-light);">แบรนด์</div>
+            <div style="font-weight:500;">OEM Premium</div>
+            
+            <div style="color:var(--text-light);">ส่งจาก</div>
+            <div>{{ product.location }}</div>
+            
+            <div style="color:var(--text-light);">จำนวนคงเหลือ</div>
+            <div>{{ product.stock }} ชิ้น</div>
+        </div>
+        
+        <div class="desc-content">
+            {{ product.description }}
+        </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div class="reviews-section">
+        <div class="tab-title-header" style="margin-bottom:15px;">คะแนนของสินค้า</div>
+        
+        <div class="reviews-summary">
+            <div class="rating-big-box">
+                <div class="rating-big-num">{{ product.rating|floatformat:1 }}</div>
+                <div style="color:var(--text-light); font-size:12px; margin-top:3px;">เต็ม 5 คะแนน</div>
+                <div class="review-stars" style="font-size:16px; margin-top:5px;">⭐⭐⭐⭐⭐</div>
+            </div>
+            
+            <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                <span style="border:1px solid var(--primary-color); color:var(--primary-color); background-color:var(--primary-light); padding:6px 15px; border-radius:2px; font-size:13px; font-weight:bold;">ทั้งหมด ({{ reviews.count }})</span>
+                <span style="border:1px solid var(--border-color); padding:6px 15px; border-radius:2px; font-size:13px; background-color:#fff;">5 ดาว ({{ reviews.count }})</span>
+                <span style="border:1px solid var(--border-color); padding:6px 15px; border-radius:2px; font-size:13px; background-color:#fff;">4 ดาว (0)</span>
+                <span style="border:1px solid var(--border-color); padding:6px 15px; border-radius:2px; font-size:13px; background-color:#fff;">3 ดาว (0)</span>
+            </div>
+        </div>
+
+        <div class="reviews-list">
+            {% for review in reviews %}
+                <div class="review-item">
+                    <div class="review-avatar">
+                        {{ review.user.username|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <div class="review-username">{{ review.user.username }}</div>
+                        <div class="review-stars">
+                            {% if review.rating == 5 %}⭐⭐⭐⭐⭐{% elif review.rating == 4 %}⭐⭐⭐⭐☆{% else %}⭐⭐⭐☆☆{% endif %}
+                        </div>
+                        <div class="review-date">{{ review.created_at|date:"d-m-Y H:i" }} | ตัวเลือกสินค้า: {{ colors.0 }}, {{ sizes.0 }}</div>
+                        <div class="review-text">
+                            {{ review.comment }}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div style="text-align:center; padding:40px; color:var(--text-light); font-size:14px;">
+                    ยังไม่มีคะแนนรีวิวสำหรับสินค้านี้ มาร่วมเป็นคนแรกที่รีวิวกันเถอะ!
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RELATED PRODUCTS -->
+    <div class="categories-section" style="margin-top:20px;">
+        <div class="section-header">
+            <h3 class="section-title">สินค้าแนะนำจากหมวดหมู่เดียวกัน</h3>
+        </div>
+        <div class="products-grid">
+            {% for related in related_products %}
+                <div class="product-card" onclick="window.location.href='{% url 'chopee:product_detail' related.id %}'" style="cursor:pointer;">
+                    <div class="product-img-wrapper">
+                        <img src="{{ related.image_url }}" alt="{{ related.name }}" class="product-img">
+                        {% if related.has_discount %}
+                            <div class="discount-badge">-{{ related.discount_percentage }}%<span>ลด</span></div>
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name-card">{{ related.name }}</h3>
+                        <div class="product-price-row">
+                            {% if related.has_discount %}
+                                <span class="original-price-card">฿{{ related.original_price }}</span>
+                            {% endif %}
+                            <span class="price-card">฿{{ related.price }}</span>
+                        </div>
+                        <div class="product-stats" style="border:none; padding-top:0;">
+                            <span>⭐ {{ related.rating|floatformat:1 }}</span>
+                            <span>ขายแล้ว {{ related.sold_count }} ชิ้น</span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Gallery and Purchase Scripts -->
+    <script>
+        function setMainImage(url, element) {
+            document.getElementById('mainImage').src = url;
+            // Deactivate other thumbnails
+            let thumbs = document.getElementsByClassName('thumbnail-item');
+            for(let i=0; i<thumbs.length; i++) {
+                thumbs[i].classList.remove('active');
+            }
+            element.classList.add('active');
+        }
+
+        function selectVariation(button, type) {
+            // Find parent of variations
+            let parent = button.parentElement;
+            let buttons = parent.getElementsByClassName('variation-tag');
+            for(let i=0; i<buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            button.classList.add('active');
+
+            if(type === 'color') {
+                document.getElementById('selectedColor').value = button.innerText.trim();
+            } else if(type === 'size') {
+                document.getElementById('selectedSize').value = button.innerText.trim();
+            }
+        }
+
+        function stepQty(amount) {
+            let input = document.getElementById('qtyInput');
+            let val = parseInt(input.value) + amount;
+            let max = parseInt(input.max) || 100;
+            if(val >= 1 && val <= max) {
+                input.value = val;
+            }
+        }
+
+        function submitForm(action) {
+            document.getElementById('formAction').value = action;
+            document.getElementById('purchaseForm').submit();
+        }
+    </script>
+
+{% endblock %}

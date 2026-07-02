@@ -1,0 +1,52 @@
+{% extends 'chopee/base.html' %}
+{% load static %}
+
+{% block title %}สมัครสมาชิก | Chopee ประเทศไทย{% endblock %}
+
+{% block content %}
+
+    <div class="auth-page-container">
+        <!-- Brand banner side -->
+        <div class="auth-brand-side">
+            <div class="auth-brand-logo">Chopee</div>
+            <div class="auth-brand-text">สมัครสมาชิกกับเราวันนี้ เพื่อรับโค้ดส่วนลดต้อนรับสมาชิกใหม่ทันที 50%!</div>
+        </div>
+        
+        <!-- Form input side -->
+        <div class="auth-form-side">
+            <h2 class="auth-title">สมัครสมาชิก</h2>
+            
+            <form action="{% url 'chopee:register' %}" method="POST">
+                {% csrf_token %}
+                
+                <div class="auth-input-group">
+                    <label for="username">ชื่อผู้ใช้งาน</label>
+                    <input type="text" name="username" id="username" class="auth-input" placeholder="ใส่ชื่อบัญชีผู้ใช้ที่ต้องการสมัคร" required autocomplete="username">
+                </div>
+                
+                <div class="auth-input-group" style="margin-top: 12px;">
+                    <label for="email">อีเมล</label>
+                    <input type="email" name="email" id="email" class="auth-input" placeholder="ใส่ที่อยู่อีเมลของคุณ" required autocomplete="email">
+                </div>
+                
+                <div class="auth-input-group" style="margin-top: 12px;">
+                    <label for="password">รหัสผ่าน</label>
+                    <input type="password" name="password" id="password" class="auth-input" placeholder="รหัสผ่านอย่างน้อย 6 ตัวขึ้นไป" required autocomplete="new-password">
+                </div>
+
+                <div class="auth-input-group" style="margin-top: 12px;">
+                    <label for="password_confirm">ยืนยันรหัสผ่าน</label>
+                    <input type="password" name="password_confirm" id="password_confirm" class="auth-input" placeholder="ใส่รหัสผ่านอีกครั้ง" required autocomplete="new-password">
+                </div>
+                
+                <button type="submit" class="btn-auth-submit">สมัครสมาชิก</button>
+            </form>
+            
+            <div class="auth-footer">
+                <span>มีบัญชี Chopee อยู่แล้ว? </span>
+                <a href="{% url 'chopee:login' %}">เข้าสู่ระบบ</a>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

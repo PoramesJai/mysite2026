@@ -1,0 +1,42 @@
+{% extends 'chopee/base.html' %}
+{% load static %}
+
+{% block title %}เข้าสู่ระบบ | Chopee ประเทศไทย{% endblock %}
+
+{% block content %}
+
+    <div class="auth-page-container">
+        <!-- Brand banner side -->
+        <div class="auth-brand-side">
+            <div class="auth-brand-logo">Chopee</div>
+            <div class="auth-brand-text">แหล่งช้อปปิ้งออนไลน์ที่ใหญ่ที่สุด คุ้มค่าที่สุด พร้อมแจกโค้ดส่งฟรีทุกวัน!</div>
+        </div>
+        
+        <!-- Form input side -->
+        <div class="auth-form-side">
+            <h2 class="auth-title">เข้าสู่ระบบ</h2>
+            
+            <form action="{% url 'chopee:login' %}{% if next %}?next={{ next }}{% endif %}" method="POST">
+                {% csrf_token %}
+                
+                <div class="auth-input-group">
+                    <label for="username">ชื่อผู้ใช้งาน</label>
+                    <input type="text" name="username" id="username" class="auth-input" placeholder="ใส่ชื่อบัญชีผู้ใช้ของคุณ" required autocomplete="username">
+                </div>
+                
+                <div class="auth-input-group" style="margin-top: 15px;">
+                    <label for="password">รหัสผ่าน</label>
+                    <input type="password" name="password" id="password" class="auth-input" placeholder="ใส่รหัสผ่านของคุณ" required autocomplete="current-password">
+                </div>
+                
+                <button type="submit" class="btn-auth-submit">เข้าสู่ระบบ</button>
+            </form>
+            
+            <div class="auth-footer">
+                <span>ยังไม่มีบัญชี Chopee? </span>
+                <a href="{% url 'chopee:register' %}">สมัครสมาชิก</a>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

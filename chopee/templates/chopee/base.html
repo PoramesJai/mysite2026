@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Chopee - ช้อปง่าย ได้ของไว ปลอดภัย 100%{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'chopee/css/style.css' %}">
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="container">
+            <!-- Header Top Mini Bar -->
+            <div class="header-top">
+                <div class="header-top-left">
+                    <a href="#">Seller Centre</a>
+                    <a href="#">เริ่มต้นขายสินค้า</a>
+                    <a href="#">ดาวน์โหลด</a>
+                    <span>ติดตามเราบน: 
+                        <a href="#" style="margin-left:5px;">Facebook</a>
+                        <a href="#" style="margin-left:5px;">Instagram</a>
+                    </span>
+                </div>
+                <div class="header-top-right">
+                    <a href="#">🔔 การแจ้งเตือน</a>
+                    <a href="#">❔ ช่วยเหลือ</a>
+                    <a href="#">🌐 ไทย / TH</a>
+                    {% if user.is_authenticated %}
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <a href="{% url 'chopee:profile' %}" style="font-weight:600; display:flex; align-items:center; gap:5px;">
+                                👤 {{ user.username }}
+                            </a>
+                            <span style="opacity:0.5;">|</span>
+                            <a href="{% url 'chopee:logout' %}">ออกจากระบบ</a>
+                        </div>
+                    {% else %}
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <a href="{% url 'chopee:register' %}" style="font-weight:600;">สมัครสมาชิก</a>
+                            <span style="opacity:0.5;">|</span>
+                            <a href="{% url 'chopee:login' %}" style="font-weight:600;">เข้าสู่ระบบ</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Header Main Search and Cart -->
+            <div class="header-main">
+                <!-- Logo -->
+                <div class="logo-container">
+                    <a href="{% url 'chopee:home' %}" class="logo">
+                        <span>C</span>hopee
+                    </a>
+                </div>
+
+                <!-- Search -->
+                <div class="search-container">
+                    <form action="{% url 'chopee:home' %}" method="GET" class="search-bar">
+                        <!-- Keep category, location, and sorting parameters if already present -->
+                        {% if selected_category %}
+                            <input type="hidden" name="category" value="{{ selected_category.slug }}">
+                        {% endif %}
+                        {% if sort %}
+                            <input type="hidden" name="sort" value="{{ sort }}">
+                        {% endif %}
+                        
+                        <input type="text" name="q" placeholder="ค้นหาการ์ดสะสม, เสื้อยืดลายพรีเมียม, เคสมือถือสวยๆ..." class="search-input" value="{{ q }}">
+                        <button type="submit" class="search-btn">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-top:2px;">
+                                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.11-.097zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                            </svg>
+                            ค้นหา
+                        </button>
+                    </form>
+                    
+                    <!-- Search Suggestions -->
+                    <div class="search-suggestions">
+                        <a href="{% url 'chopee:home' %}?q=เสื้อยืด">เสื้อยืด</a>
+                        <a href="{% url 'chopee:home' %}?q=เคสมือถือ">เคสมือถือ</a>
+                        <a href="{% url 'chopee:home' %}?q=หูฟังบลูทูธ">หูฟังบลูทูธ</a>
+                        <a href="{% url 'chopee:home' %}?q=แก้วเก็บความเย็น">แก้วเก็บความเย็น</a>
+                        <a href="{% url 'chopee:home' %}?q=พัดลมพกพา">พัดลมพกพา</a>
+                        <a href="{% url 'chopee:home' %}?q=การ์ดจอ">การ์ดจอ</a>
+                    </div>
+                </div>
+
+                <!-- Cart Icon -->
+                <div class="cart-container">
+                    <a href="{% url 'chopee:cart' %}">
+                        <span class="cart-icon">🛒</span>
+                        {% if cart_count > 0 %}
+                            <span class="cart-badge">{{ cart_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT BODY -->
+    <main class="container" style="min-height: calc(100vh - 350px);">
+        <!-- Messages Notifications -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                    <span>{{ message }}</span>
+                    <span class="alert-close" onclick="this.parentElement.style.display='none';">×</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="background-color: var(--white); border-top: 4px solid var(--primary-color); padding: 50px 0 30px 0; color: var(--text-light); margin-top: 40px; font-size: 13px;">
+        <div class="container">
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin-bottom: 40px;">
+                <div>
+                    <h4 style="color:var(--text-color); margin-bottom:15px; font-weight:600; font-size:14px; text-transform:uppercase;">ศูนย์ดูแลลูกค้า</h4>
+                    <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+                        <li><a href="#">ศูนย์ช่วยเหลือ</a></li>
+                        <li><a href="#">สั่งซื้อสินค้าอย่างไร</a></li>
+                        <li><a href="#">เริ่มขายสินค้าอย่างไร</a></li>
+                        <li><a href="#">ช่องทางการชำระเงิน</a></li>
+                        <li><a href="#">การจัดส่งสินค้า</a></li>
+                        <li><a href="#">การคืนเงินและคืนสินค้า</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color:var(--text-color); margin-bottom:15px; font-weight:600; font-size:14px; text-transform:uppercase;">เกี่ยวกับ Chopee</h4>
+                    <ul style="list-style:none; display:flex; flex-direction:column; gap:8px;">
+                        <li><a href="#">เกี่ยวกับเรา</a></li>
+                        <li><a href="#">ร่วมงานกับเรา</a></li>
+                        <li><a href="#">นโยบายความเป็นส่วนตัว</a></li>
+                        <li><a href="#">เงื่อนไขการบริการ</a></li>
+                        <li><a href="#">พันธมิตร Chopee</a></li>
+                        <li><a href="#">Flash Sale</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color:var(--text-color); margin-bottom:15px; font-weight:600; font-size:14px; text-transform:uppercase;">วิธีการชำระเงิน</h4>
+                    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                        <span style="border:1px solid #ddd; padding:4px 10px; border-radius:3px; background-color:#fafafa; font-weight:600; color:#333;">ShopeePay</span>
+                        <span style="border:1px solid #ddd; padding:4px 10px; border-radius:3px; background-color:#fafafa; font-weight:600; color:#333;">Visa/Master</span>
+                        <span style="border:1px solid #ddd; padding:4px 10px; border-radius:3px; background-color:#fafafa; font-weight:600; color:#333;">Mobile Banking</span>
+                        <span style="border:1px solid #ddd; padding:4px 10px; border-radius:3px; background-color:#fafafa; font-weight:600; color:#333;">COD</span>
+                    </div>
+                </div>
+                <div>
+                    <h4 style="color:var(--text-color); margin-bottom:15px; font-weight:600; font-size:14px; text-transform:uppercase;">ดาวน์โหลดแอป Chopee</h4>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <div style="background-color:#eee; width:80px; height:80px; display:flex; align-items:center; justify-content:center; border:1px solid #ddd; border-radius:4px; font-size:10px; font-weight:bold; color:#777; text-align:center;">QR Code ดาวน์โหลด</div>
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            <span style="border:1px solid #ccc; padding:3px 8px; border-radius:3px; font-size:11px; text-align:center; font-weight:bold;">App Store</span>
+                            <span style="border:1px solid #ccc; padding:3px 8px; border-radius:3px; font-size:11px; text-align:center; font-weight:bold;">Google Play</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="border-top:1px solid var(--border-color); padding-top:25px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; font-size:12px;">
+                <div>© 2026 Chopee. สงวนลิขสิทธิ์ทั้งหมด (ระบบจำลองสำหรับพัฒนาเว็บไซต์)</div>
+                <div style="display:flex; gap:15px;">
+                    <span>ประเทศที่ให้บริการ: ไทย | สิงคโปร์ | มาเลเซีย | ฟิลิปปินส์ | เวียดนาม</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

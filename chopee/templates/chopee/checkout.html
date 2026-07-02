@@ -1,0 +1,140 @@
+{% extends 'chopee/base.html' %}
+{% load static %}
+
+{% block title %}ทำการสั่งซื้อสินค้า | Chopee ประเทศไทย{% endblock %}
+
+{% block content %}
+
+    <div class="breadcrumb">
+        <a href="{% url 'chopee:home' %}">Chopee</a> &gt; 
+        <a href="{% url 'chopee:cart' %}">รถเข็นของฉัน</a> &gt; 
+        <span>ทำการสั่งซื้อสินค้า</span>
+    </div>
+
+    <form action="{% url 'chopee:place_order' %}" method="POST" id="checkoutForm">
+        {% csrf_token %}
+        
+        <!-- Address Section -->
+        <div class="checkout-section-box address-strip-header">
+            <h3 class="address-title">📍 ที่อยู่สำหรับจัดส่ง</h3>
+            
+            <div class="checkout-address-grid">
+                <div class="form-group-checkout">
+                    <label for="shipping_name">ชื่อผู้รับสินค้า</label>
+                    <input type="text" name="shipping_name" id="shipping_name" class="checkout-input" 
+                           placeholder="ชื่อ - นามสกุล" required value="{{ user.username }}">
+                </div>
+                <div class="form-group-checkout">
+                    <label for="shipping_phone">เบอร์โทรศัพท์</label>
+                    <input type="text" name="shipping_phone" id="shipping_phone" class="checkout-input" 
+                           placeholder="เช่น 0891234567" required value="0891234567">
+                </div>
+                <div class="form-group-checkout" style="grid-column: 1 / -1;">
+                    <label for="shipping_address">ที่อยู่แบบละเอียด</label>
+                    <textarea name="shipping_address" id="shipping_address" class="checkout-input checkout-textarea" 
+                              placeholder="บ้านเลขที่, ซอย, ถนน, ตำบล, อำเภอ, จังหวัด, รหัสไปรษณีย์" required>123/45 ถนนพหลโยธิน แขวงสามเสนใน เขตพญาไท กรุงเทพมหานคร 10400</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ordered Items -->
+        <div class="checkout-section-box">
+            <h3 style="font-size:16px; margin-bottom:15px; border-bottom: 1px solid var(--border-color); padding-bottom:10px;">📦 สินค้าที่สั่งซื้อ</h3>
+            
+            <table class="checkout-items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">สินค้า</th>
+                        <th style="text-align: center;">ราคาต่อชิ้น</th>
+                        <th style="text-align: center;">จำนวน</th>
+                        <th style="text-align: right;">ราคารวม</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                        <tr>
+                            <td>
+                                <div class="checkout-item-title">
+                                    <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}" class="checkout-item-img">
+                                    <div>
+                                        <div style="font-weight: 500; font-size: 14px;">{{ item.product.name }}</div>
+                                        <div style="font-size: 11px; color: var(--text-light); margin-top:2px;">ตัวเลือกสินค้า: คลาสสิกเอ็ดดิชั่น</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="text-align: center;">฿{{ item.product.price }}</td>
+                            <td style="text-align: center;">x {{ item.quantity }}</td>
+                            <td style="text-align: right; color: var(--text-color); font-weight: 600;">฿{{ item.total_price }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Shipping Company Option Selection -->
+            <div style="background-color: #fafafa; border: 1px solid var(--border-color); padding: 15px 20px; border-radius: var(--border-radius); display:flex; justify-content:space-between; align-items:center; margin-top: 15px; font-size:13px;">
+                <div>
+                    <span style="font-weight:600; color:var(--success-color);">ตัวเลือกการจัดส่ง: Standard Delivery - ส่งธรรมดาในประเทศ</span>
+                    <div style="color:var(--text-light); margin-top:3px;">ระยะเวลาจัดส่งโดยประมาณ: 1 - 3 วัน</div>
+                </div>
+                <div style="text-align:right; font-weight:600;">
+                    ฿{{ shipping_cost }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="checkout-section-box">
+            <h3 style="font-size:16px; margin-bottom:10px; border-bottom: 1px solid var(--border-color); padding-bottom:10px;">💳 วิธีการชำระเงิน</h3>
+            
+            <div class="payment-methods-grid">
+                <div class="payment-method-card active" onclick="setPaymentMethod('เก็บเงินปลายทาง', this)">
+                    💵 เก็บเงินปลายทาง (COD)
+                </div>
+                <div class="payment-method-card" onclick="setPaymentMethod('ShopeePay', this)">
+                    📱 ShopeePay Wallet
+                </div>
+                <div class="payment-method-card" onclick="setPaymentMethod('บัตรเครดิต / บัตรเดบิต', this)">
+                    💳 บัตรเครดิต / บัตรเดบิต
+                </div>
+                <div class="payment-method-card" onclick="setPaymentMethod('โมบายแบงก์กิ้ง (โอนเงิน)', this)">
+                    🏦 โอนผ่านธนาคาร
+                </div>
+            </div>
+            
+            <input type="hidden" name="payment_method" id="selectedPayment" value="เก็บเงินปลายทาง">
+        </div>
+
+        <!-- Order Placement Summary -->
+        <div class="checkout-section-box" style="display:flex; flex-direction:column;">
+            <div class="summary-checkout-block">
+                <div class="summary-checkout-row">
+                    <span style="color:var(--text-light);">ยอดรวมสินค้า:</span>
+                    <span class="summary-checkout-val">฿{{ total_price }}</span>
+                </div>
+                <div class="summary-checkout-row">
+                    <span style="color:var(--text-light);">ค่าจัดส่งทั้งหมด:</span>
+                    <span class="summary-checkout-val">฿{{ shipping_cost }}</span>
+                </div>
+                <div class="summary-checkout-row" style="margin-top:10px; border-top:1px solid var(--border-color); padding-top:10px;">
+                    <span style="font-size: 16px; font-weight: 500;">ยอดชำระเงินทั้งหมด:</span>
+                    <span class="summary-grand-total">฿{{ grand_total }}</span>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-place-order">สั่งซื้อสินค้า</button>
+        </div>
+    </form>
+
+    <script>
+        function setPaymentMethod(method, element) {
+            document.getElementById('selectedPayment').value = method;
+            // Deactivate other payment cards
+            let cards = document.getElementsByClassName('payment-method-card');
+            for(let i=0; i<cards.length; i++) {
+                cards[i].classList.remove('active');
+            }
+            element.classList.add('active');
+        }
+    </script>
+
+{% endblock %}

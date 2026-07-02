@@ -1,0 +1,117 @@
+{% extends 'chopee/base.html' %}
+{% load static %}
+
+{% block title %}การซื้อของฉัน | Chopee ประเทศไทย{% endblock %}
+
+{% block content %}
+
+    <div class="profile-layout">
+        <!-- Sidebar -->
+        <aside class="profile-sidebar">
+            <div class="profile-avatar-row">
+                <div class="profile-avatar">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+                <div>
+                    <div class="profile-username">{{ user.username }}</div>
+                    <a href="#" style="font-size:12px; color:var(--text-light);">✏️ แก้ไขข้อมูลส่วนตัว</a>
+                </div>
+            </div>
+            
+            <ul class="profile-menu-list">
+                <li>
+                    <a href="#" class="profile-menu-item">
+                        👤 บัญชีของฉัน
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'chopee:profile' %}" class="profile-menu-item active">
+                        📋 การซื้อของฉัน
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="profile-menu-item">
+                        🔔 การแจ้งเตือน
+                    </a>
+                </li>
+                <li>
+                    <a href="#" class="profile-menu-item">
+                        🎫 โค้ดส่วนลดของฉัน
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Orders Area -->
+        <div>
+            <!-- Order status tabs -->
+            <div class="order-tabs-header">
+                <a href="?status=all" class="order-tab {% if status_filter == 'all' %}active{% endif %}">ทั้งหมด</a>
+                <a href="?status=Pending" class="order-tab {% if status_filter == 'Pending' %}active{% endif %}">ที่ต้องชำระ</a>
+                <a href="?status=Paid" class="order-tab {% if status_filter == 'Paid' %}active{% endif %}">ที่ต้องจัดส่ง</a>
+                <a href="?status=Shipped" class="order-tab {% if status_filter == 'Shipped' %}active{% endif %}">ที่ต้องได้รับ</a>
+                <a href="?status=Completed" class="order-tab {% if status_filter == 'Completed' %}active{% endif %}">สำเร็จแล้ว</a>
+                <a href="?status=Cancelled" class="order-tab {% if status_filter == 'Cancelled' %}active{% endif %}">ยกเลิกแล้ว</a>
+            </div>
+
+            <!-- Orders Listing -->
+            {% if orders %}
+                {% for order in orders %}
+                    <div class="order-card">
+                        <div class="order-card-header">
+                            <span class="order-id">คำสั่งซื้อหมายเลข #{{ order.id }} | วันที่สั่งซื้อ: {{ order.created_at|date:"d-m-Y" }}</span>
+                            <span class="order-status-badge">
+                                {{ order.get_status_display }}
+                            </span>
+                        </div>
+                        
+                        <!-- Items list -->
+                        <div class="order-items-list">
+                            {% for item in order.items.all %}
+                                <div class="order-item-row">
+                                    <div class="order-item-info">
+                                        <img src="{% if item.product %}{{ item.product.image_url }}{% else %}/static/placeholder.jpg{% endif %}" alt="{{ item.product_name }}" class="order-item-img">
+                                        <div>
+                                            <div class="order-item-name">{{ item.product_name }}</div>
+                                            <span class="order-item-qty">จำนวน: x{{ item.quantity }} | ตัวเลือกสินค้า: Standard</span>
+                                        </div>
+                                    </div>
+                                    <div class="order-item-price">฿{{ item.price }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Card Footer actions -->
+                        <div class="order-card-footer">
+                            {% if order.status == 'Paid' %}
+                                <div style="font-size:12px; color:var(--text-light); margin-right:auto; display:flex; align-items:center; gap:5px;">
+                                    🚚 <span style="color:var(--success-color); font-weight:600;">ร้านค้ากำลังเตรียมจัดส่งพัสดุของคุณ</span>
+                                </div>
+                            {% elif order.status == 'Shipped' %}
+                                <div style="font-size:12px; color:var(--text-light); margin-right:auto; display:flex; align-items:center; gap:5px;">
+                                    📦 <span style="color:#0055aa; font-weight:600;">พัสดุจัดส่งสำเร็จ อยู่ระหว่างการนำจ่าย</span>
+                                </div>
+                            {% elif order.status == 'Completed' %}
+                                <div style="font-size:12px; color:var(--text-light); margin-right:auto; display:flex; align-items:center; gap:5px;">
+                                    ✅ <span style="color:var(--text-light);">ผู้ซื้อได้รับและยืนยันสินค้าเรียบร้อย</span>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="order-grand-total">
+                                <span>ยอดคำสั่งซื้อทั้งหมด:</span>฿{{ order.total_price }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div style="background-color: var(--white); border-radius:var(--border-radius); box-shadow:var(--shadow); padding: 50px; text-align:center; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:15px; min-height: 300px;">
+                    <div style="font-size: 50px;">📄</div>
+                    <h3 style="color:var(--text-light);">ยังไม่มีรายการสั่งซื้อ</h3>
+                    <p style="color:var(--text-lighter); font-size:13px;">เมื่อคุณทำการสั่งสินค้า รายการคำสั่งซื้อของคุณจะปรากฏที่นี่</p>
+                    <a href="{% url 'chopee:home' %}" class="sidebar-btn" style="max-width:200px;">ไปช้อปปิ้งเลย</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
